@@ -18,6 +18,7 @@ public class ChatApp extends JFrame {
     private JTextField messageField = new JTextField();
     private JPanel chatWindow = new JPanel();
     private String userName;
+    private JButton sendButton = new JButton("Отправить");
 
     public ChatApp() {
 
@@ -25,36 +26,35 @@ public class ChatApp extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(200, 200, 450, 600);
 
-        setLayout(new BorderLayout(10,10));
+        setLayout(new BorderLayout(10, 10));
 
         chatWindow.setLayout(new BoxLayout(chatWindow, BoxLayout.Y_AXIS));
         JScrollPane chatWindowScr = new JScrollPane(chatWindow);
 
-        chatWindowScr.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        chatWindowScr.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        messageField.setHorizontalAlignment(JTextField.RIGHT);
 
         messageField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sendMsg();
+                if (userName == null) {
+                    setUserName();
+                } else {
+                    sendMsg();
+                }
             }
         });
-        messageField.setHorizontalAlignment(JTextField.RIGHT);
 
-        JButton sendButton = new JButton("Отправить");
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JLabel message = new JLabel(messageField.getText());
-                messages.add(message);
-                for (JLabel i : messages) {
-                    chatWindow.add(i);
+                if (userName == null) {
+                    setUserName();
+                } else {
+                    sendMsg();
                 }
-                messageField.setText("");
-                messageField.requestFocus();
-                setVisible(true);
             }
         });
-
 
         JPanel bottomMessagePanel = new JPanel();
         bottomMessagePanel.setLayout(new BorderLayout());
@@ -100,7 +100,7 @@ public class ChatApp extends JFrame {
     public void sendMsg() {
         try {
             String str = messageField.getText();
-            out.writeUTF(str);
+            out.writeUTF(userName + ": " + str);
             messageField.setText("");
             messageField.requestFocus();
             setVisible(true);
@@ -108,4 +108,12 @@ public class ChatApp extends JFrame {
             e.printStackTrace();
         }
     }
+
+    public void setUserName() {
+        userName = messageField.getText();
+        messageField.setText("");
+        messageField.requestFocus();
+    }
 }
+
+

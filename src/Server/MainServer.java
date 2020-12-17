@@ -1,4 +1,4 @@
-package ru.geekbrains.server;
+package Server;
 
 public class MainServer {
 
