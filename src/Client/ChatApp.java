@@ -1,11 +1,23 @@
+package Client;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class ChatApp extends JFrame {
-    protected ArrayList<JLabel> messages = new ArrayList<>();
+    private ArrayList<JLabel> messages = new ArrayList<>();
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private JTextField messageField = new JTextField();
+    private JPanel chatWindow = new JPanel();
+    private String userName;
 
     public ChatApp() {
 
@@ -15,22 +27,15 @@ public class ChatApp extends JFrame {
 
         setLayout(new BorderLayout(10,10));
 
-        JPanel chatWindow = new JPanel();
         chatWindow.setLayout(new BoxLayout(chatWindow, BoxLayout.Y_AXIS));
         JScrollPane chatWindowScr = new JScrollPane(chatWindow);
+
         chatWindowScr.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
-        JTextField messageField = new JTextField();
         messageField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JLabel message = new JLabel(messageField.getText());
-                messages.add(message);
-                for (JLabel i : messages) {
-                    chatWindow.add(i);
-                }
-                messageField.setText("");
-                setVisible(true);
+                sendMsg();
             }
         });
         messageField.setHorizontalAlignment(JTextField.RIGHT);
@@ -64,6 +69,43 @@ public class ChatApp extends JFrame {
         bottomMessagePanel.add(messageField, BorderLayout.CENTER);
 
         setVisible(true);
+
+        connect();
     }
 
+    public void connect() {
+        try {
+            socket = new Socket("localhost", 8189);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        String msg = in.readUTF();
+                        messages.add(new JLabel(msg));
+                        for (JLabel i : messages) {
+                            chatWindow.add(i);
+                        }
+                        setVisible(true);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMsg() {
+        try {
+            String str = messageField.getText();
+            out.writeUTF(str);
+            messageField.setText("");
+            messageField.requestFocus();
+            setVisible(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
